@@ -1,5 +1,6 @@
 env/
 horcrux_testing.ipynb
+horcrux_config.toml
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
