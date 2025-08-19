@@ -22,5 +22,11 @@ class BaseFeature(ABC):
         if isinstance(pairs, str):
             pairs = [pairs]
         
+        # Convert timezone-naive timestamps to UTC
+        if start.tz is None:
+            start = start.tz_localize('UTC')
+        if end.tz is None:
+            end = end.tz_localize('UTC')
+        
         output = self.calculate(start, end, pairs, *self.args, **self.kwargs)
         return output
