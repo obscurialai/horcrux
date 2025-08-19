@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-class Feature(ABC):
+class BaseFeature(ABC):
     def __init__(self, *args, **kwargs):
         self.args = args
         self.kwargs = kwargs
