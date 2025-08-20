@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "horcrux"
-version = "0.1.0"
+version = "0.1.1"
 description = "A Standard Feature interface for financial time series data"
 readme = "README.md"
 requires-python = ">=3.8"
