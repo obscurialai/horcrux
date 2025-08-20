@@ -11,7 +11,7 @@ class OHLCV(Feature):
     # Class variable to cache the entire OHLCV dataset
     ohlcv_data = None
     
-    def calculate(self, start: pd.Timestamp, end: pd.Timestamp, pairs: List[str]) -> pd.DataFrame:
+    def _compute_impl(self, start: pd.Timestamp, end: pd.Timestamp, pairs: List[str]) -> pd.DataFrame:
         """
         Calculate OHLCV data for given time range and pairs.
         
