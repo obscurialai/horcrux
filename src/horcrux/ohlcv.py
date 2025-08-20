@@ -46,10 +46,7 @@ class OHLCV(Feature):
             ohlcv_path = Path(config["ohlcv_path"]).expanduser()
             
             # Load the entire parquet file into memory
-            print(f"Loading OHLCV data from {ohlcv_path}...")
-            OHLCV.ohlcv_data = pd.read_parquet(ohlcv_path, engine='pyarrow')
-            
-            print(f"OHLCV data loaded successfully. Shape: {OHLCV.ohlcv_data.shape}")   
+            OHLCV.ohlcv_data = pd.read_parquet(ohlcv_path, engine='pyarrow')  
         except FileNotFoundError:
             raise FileNotFoundError(f"OHLCV parquet file not found at {ohlcv_path}")
         except Exception as e:
