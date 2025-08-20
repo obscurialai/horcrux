@@ -4,14 +4,14 @@ import pyarrow.parquet as pq
 import toml
 from pathlib import Path
 from typing import List, Union
-from pydantic import BaseModel, validator
+from pydantic import BaseModel
 from .feature import Feature
 
 class OHLCV(Feature):
     # Class variable to cache the entire OHLCV dataset
     ohlcv_data = None
     
-    def _compute_impl(self, start: pd.Timestamp, end: pd.Timestamp, pairs: List[str]) -> pd.DataFrame:
+    def _compute_impl(self, start: pd.Timestamp, end: pd.Timestamp, pairs: List[str], *args, **kwargs) -> pd.DataFrame:
         """
         Calculate OHLCV data for given time range and pairs.
         

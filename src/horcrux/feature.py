@@ -28,5 +28,5 @@ class Feature(ABC):
         return output
     
     @abstractmethod
-    def _compute_impl(self):
+    def _compute_impl(self, start: pd.Timestamp, end: pd.Timestamp, pairs: List[str], *args, **kwargs):
         pass
