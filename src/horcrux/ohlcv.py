@@ -5,7 +5,7 @@ import toml
 from pathlib import Path
 from typing import List, Union
 from pydantic import BaseModel, validator
-from feature import BaseFeature
+from .base_feature import BaseFeature
 
 class OHLCV(BaseFeature):
     # Class variable to cache the entire OHLCV dataset
@@ -41,7 +41,7 @@ class OHLCV(BaseFeature):
         """
         try:
             # Load config to get ohlcv_path
-            config_path = Path(__file__).parent / "horcrux_config.toml"
+            config_path = Path("~/.config/horcrux/horcrux_config.toml").expanduser()
             config = toml.load(config_path)
             ohlcv_path = Path(config["ohlcv_path"]).expanduser()
             
