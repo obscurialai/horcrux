@@ -1,18 +1,14 @@
 from abc import ABC, abstractmethod
 import pandas as pd
 from typing import List, Union
-from pydantic import BaseModel, validator
+from pydantic import BaseModel
 
-class BaseFeature(ABC):
+class Feature(ABC):
     def __init__(self, *args, **kwargs):
         self.args = args
         self.kwargs = kwargs
     
-    @abstractmethod
-    def calculate(self):
-        pass
-    
-    def get_feature(self, start: Union[str, pd.Timestamp], end: Union[str, pd.Timestamp], pairs: Union[str, List[str]]):
+    def compute(self, start: Union[str, pd.Timestamp], end: Union[str, pd.Timestamp], pairs: Union[str, List[str]]):
         # Convert string inputs to pd.Timestamp if needed
         if isinstance(start, str):
             start = pd.Timestamp(start)
@@ -28,5 +24,9 @@ class BaseFeature(ABC):
         if end.tz is None:
             end = end.tz_localize('UTC')
         
-        output = self.calculate(start, end, pairs, *self.args, **self.kwargs)
+        output = self._compute_impl(start, end, pairs, *self.args, **self.kwargs)
         return output
+    
+    @abstractmethod
+    def _compute_impl(self):
+        pass

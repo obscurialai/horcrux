@@ -5,9 +5,9 @@ import toml
 from pathlib import Path
 from typing import List, Union
 from pydantic import BaseModel, validator
-from .base_feature import BaseFeature
+from .base_feature import Feature
 
-class OHLCV(BaseFeature):
+class OHLCV(Feature):
     # Class variable to cache the entire OHLCV dataset
     ohlcv_data = None
     
