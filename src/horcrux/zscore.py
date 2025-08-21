@@ -1,4 +1,4 @@
-from horcrux import Feature
+from .feature import Feature
 import pandas as pd
 from typing import List
 
@@ -146,7 +146,7 @@ class AdaptiveZScore(Feature):
         base_data = base_feature.compute(extended_start, end, pairs)
         
         # Get OHLCV data to measure volatility
-        from horcrux import OHLCV
+        from .ohlcv import OHLCV
         ohlcv = OHLCV().compute(extended_start, end, pairs)
         close_prices = ohlcv.xs("close", axis=1, level=1)
         
