@@ -3,7 +3,7 @@ import pandas as pd
 from typing import List, Union
 from pydantic import BaseModel
 
-class Feature(ABC):
+class Feature:
     def __init__(self, *args, **kwargs):
         self.args = args
         self.kwargs = kwargs
@@ -29,4 +29,4 @@ class Feature(ABC):
     
     @abstractmethod
     def _compute_impl(self, start: pd.Timestamp, end: pd.Timestamp, pairs: List[str], *args, **kwargs):
-        pass
+        raise NotImplementedError
