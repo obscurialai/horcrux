@@ -27,8 +27,7 @@ class Feature:
         
         output = self._compute_impl(start, end, pairs, *self.args, **self.kwargs)
         if self.fields != None:
-            # TODO: Implement field filtering logic
-            pass
+            return output.loc[:, pd.IndexSlice[pairs, self.fields]]
         return output
     
     @abstractmethod
