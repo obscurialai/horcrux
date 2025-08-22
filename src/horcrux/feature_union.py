@@ -4,5 +4,5 @@ from typing import List
 
 class FUnion(Feature):
     def _compute_impl(self, start: pd.Timestamp, end: pd.Timestamp, pairs: List[str], features: List[Feature]):
-        computed_features = [feature[start, end, pairs] for feature in features]
+        computed_features = [feature.compute(start, end, pairs) for feature in features]
         return pd.concat(computed_features)
