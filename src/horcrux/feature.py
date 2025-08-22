@@ -4,7 +4,7 @@ from typing import List, Union
 from pydantic import BaseModel
 
 class Feature:
-    def __init__(self, *args, fields: Union[None, List[str]] = None, **kwargs):
+    def __init__(self, fields: Union[None, List[str]] = None, *args, **kwargs):
         self.args = args
         self.kwargs = kwargs
         self.fields = fields
