@@ -23,6 +23,8 @@ dependencies = [
     "pyarrow",
     "toml",
     "pydantic",
+    "numpy",
+    "numba",
 ]
 
 [project.optional-dependencies]

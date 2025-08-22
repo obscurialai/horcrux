@@ -4,9 +4,10 @@ from typing import List, Union
 from pydantic import BaseModel
 
 class Feature:
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, fields: Union[None, str, List[str]] = None, **kwargs):
         self.args = args
         self.kwargs = kwargs
+        self.fields = fields
     
     def compute(self, start: Union[str, pd.Timestamp], end: Union[str, pd.Timestamp], pairs: Union[str, List[str]]):
         # Convert string inputs to pd.Timestamp if needed
@@ -25,6 +26,9 @@ class Feature:
             end = end.tz_localize('UTC')
         
         output = self._compute_impl(start, end, pairs, *self.args, **self.kwargs)
+        if self.fields != None:
+            # TODO: Implement field filtering logic
+            pass
         return output
     
     @abstractmethod
