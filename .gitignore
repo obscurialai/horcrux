@@ -1,6 +1,7 @@
 env/
 horcrux_testing.ipynb
 horcrux_config.toml
+rsi.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
