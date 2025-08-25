@@ -1,5 +1,6 @@
 env/
 horcrux_testing.ipynb
+horcrux_testing.py
 horcrux_config.toml
 rsi.py
 

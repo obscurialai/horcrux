@@ -38,7 +38,7 @@ class Feature:
         
         # Check if the DataFrame has a MultiIndex columns structure
         if not isinstance(output.columns, pd.MultiIndex):
-            return output
+            raise Exception
         
         #If add_hash = True add hashes to the columnnames
         if add_hash:
