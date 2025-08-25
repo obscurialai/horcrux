@@ -34,7 +34,7 @@ class Feature:
         
         return output
     
-    def compute(self, start: Union[str, pd.Timestamp], end: Union[str, pd.Timestamp], pairs: Union[str, List[str]], add_hash: bool = False):
+    def compute(self, start: Union[str, pd.Timestamp], end: Union[str, pd.Timestamp], pairs: Union[str, List[str]], add_hash: bool = False, convert_to_multiindex = False):
         # Convert string inputs to pd.Timestamp if needed
         if isinstance(start, str):
             start = pd.Timestamp(start)
@@ -53,7 +53,8 @@ class Feature:
         output = self._compute_impl(start, end, pairs, *self.args, **self.kwargs)
         
         # Ensure the DataFrame has MultiIndex columns
-        output = self._ensure_multiindex_columns(output)
+        if convert_to_multiindex:
+            output = self._ensure_multiindex_columns(output)
         
         #If we have a fields parameter then we need to return only those fields
         if self.fields != None:
