@@ -95,14 +95,36 @@ class RollingLinRegSlope(Feature):
             window: Rolling window size for slope calculation (default: 14)
             
         Returns:
-            pd.DataFrame: Rolling linear regression slopes with same structure as base_feature
+            pd.DataFrame: Rolling linear regression slopes with MultiIndex (pair, feature) columns
         """
         # Get extra history for rolling calculations
         extended_start = start - pd.Timedelta(minutes=window * 2)
         base_data = base_feature.compute(extended_start, end, pairs)
         
-        # Apply rolling linear regression slope
-        slope_data = rolling_linear_regression_slope_fast(base_data, window)
+        # Create result DataFrame
+        slope_data = pd.DataFrame(index=base_data.index)
+        
+        # Process each column in base_data
+        for col in base_data.columns:
+            if isinstance(base_data.columns, pd.MultiIndex):
+                pair, feature_name = col
+                new_col_name = (pair, f"{feature_name}_slope")
+            else:
+                # Simple column case - treat column name as pair
+                pair = col
+                new_col_name = (pair, "slope")
+            
+            # Only process if pair is in requested pairs
+            if pair in pairs:
+                feature_series = base_data[col]
+                slope_values = fast_linreg_slope(feature_series.values.astype(np.float64), window)
+                slope_data[new_col_name] = slope_values
+        
+        # Ensure MultiIndex columns
+        if not isinstance(slope_data.columns, pd.MultiIndex):
+            slope_data.columns = pd.MultiIndex.from_tuples(
+                slope_data.columns, names=['pair', 'feature']
+            )
         
         # Return only the requested time range
         return slope_data.loc[start:end] 
