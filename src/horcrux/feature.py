@@ -11,9 +11,10 @@ class Feature:
         self.args = args
         self.kwargs = kwargs
         self.fields = fields
-        self.hash = self.__compute_hash()
+        #For now for convenience we will only use the first 10 characters of the hash
+        self.hash = self.__compute_hash()[:10]
     
-    def compute(self, start: Union[str, pd.Timestamp], end: Union[str, pd.Timestamp], pairs: Union[str, List[str]]):
+    def compute(self, start: Union[str, pd.Timestamp], end: Union[str, pd.Timestamp], pairs: Union[str, List[str]], add_hash: bool = False):
         # Convert string inputs to pd.Timestamp if needed
         if isinstance(start, str):
             start = pd.Timestamp(start)
@@ -30,55 +31,40 @@ class Feature:
             end = end.tz_localize('UTC')
         
         output = self._compute_impl(start, end, pairs, *self.args, **self.kwargs)
+        
+        #If we have a fields parameter then we need to return only those fields
         if self.fields != None:
             output = output.loc[:, pd.IndexSlice[pairs, self.fields]]
         
-        output = self.normalize_output(output)
+        # Check if the DataFrame has a MultiIndex columns structure
+        if not isinstance(output.columns, pd.MultiIndex):
+            return output
+        
+        #If add_hash = True add hashes to the columnnames
+        if add_hash:
+            output = self.add_hash_to_output_columns(output)
         
         return output
     
-    def normalize_output(self, output: pd.DataFrame) -> pd.DataFrame:
-        """
-        Normalize the output DataFrame format based on its current structure.
+    def add_hash_to_output_columns(self, output: pd.DataFrame) -> pd.DataFrame:
+        # Get the current column names
+        new_columns = []
         
-        - If single index (columns are pairs), converts to MultiIndex with format:
-          (pair, CLASSNAME-{first 6 chars of hash})
-        - If already MultiIndex, converts column names to format:
-          CLASSNAME-COLUMNNAME-{first 6 chars of hash}
-          
-        Args:
-            output: The DataFrame to normalize
-            
-        Returns:
-            pd.DataFrame: Normalized DataFrame with consistent column naming
-        """
-        class_name = self.__class__.__name__
-        hash_prefix = self.hash[:6]
-        
-        if isinstance(output.columns, pd.MultiIndex):
-            # Multi-index case: convert column names to CLASSNAME-COLUMNNAME-HASH format
-            new_columns = []
-            for pair, feature_name in output.columns:
-                new_feature_name = f"{class_name}-{feature_name}-{hash_prefix}"
+        for pair, feature_name in output.columns:
+            # Check if the feature name already has a hash appended
+            # Format is FEATURENAME$HASH where hash is 10 characters
+            # So we check if the 11th character from the right is '$'
+            if len(feature_name) >= 11 and feature_name[-11] == '$':
+                # Hash already present, keep the original name
+                new_columns.append((pair, feature_name))
+            else:
+                # No hash present, append our hash
+                new_feature_name = f"{feature_name}${self.hash}"
                 new_columns.append((pair, new_feature_name))
-            
-            output.columns = pd.MultiIndex.from_tuples(
-                new_columns, 
-                names=output.columns.names
-            )
-        else:
-            # Single index case: convert to MultiIndex with CLASSNAME-HASH format
-            feature_name = f"{class_name}-{hash_prefix}"
-            new_columns = pd.MultiIndex.from_product(
-                [output.columns, [feature_name]],
-                names=['pair', 'feature']
-            )
-            
-            # Reshape the dataframe to match MultiIndex structure
-            output_normalized = output.copy()
-            output_normalized.columns = new_columns
-            output = output_normalized
-            
+        
+        # Update the column names
+        output.columns = pd.MultiIndex.from_tuples(new_columns)
+        
         return output
     
     @abstractmethod
