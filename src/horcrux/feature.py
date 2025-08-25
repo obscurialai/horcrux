@@ -14,6 +14,26 @@ class Feature:
         #For now for convenience we will only use the first 10 characters of the hash
         self.hash = self.__compute_hash()[:10]
     
+    def _ensure_multiindex_columns(self, output: pd.DataFrame) -> pd.DataFrame:
+        """
+        Ensure the DataFrame has MultiIndex columns. If not, convert it by using
+        pairs as the first level and the feature class name as the second level.
+        """
+        if not isinstance(output.columns, pd.MultiIndex):
+            # Get the feature class name
+            feature_name = self.__class__.__name__
+            pairs = output.columns
+            
+            # Create MultiIndex columns with pairs as first level and feature name as second level
+            new_columns = []
+            for pair in pairs:
+                for col in output.columns:
+                    new_columns.append((pair, feature_name))
+            
+            output.columns = pd.MultiIndex.from_tuples(new_columns)
+        
+        return output
+    
     def compute(self, start: Union[str, pd.Timestamp], end: Union[str, pd.Timestamp], pairs: Union[str, List[str]], add_hash: bool = False):
         # Convert string inputs to pd.Timestamp if needed
         if isinstance(start, str):
@@ -32,13 +52,12 @@ class Feature:
         
         output = self._compute_impl(start, end, pairs, *self.args, **self.kwargs)
         
+        # Ensure the DataFrame has MultiIndex columns
+        output = self._ensure_multiindex_columns(output)
+        
         #If we have a fields parameter then we need to return only those fields
         if self.fields != None:
             output = output.loc[:, pd.IndexSlice[pairs, self.fields]]
-        
-        # Check if the DataFrame has a MultiIndex columns structure
-        if not isinstance(output.columns, pd.MultiIndex):
-            raise Exception
         
         #If add_hash = True add hashes to the columnnames
         if add_hash:
