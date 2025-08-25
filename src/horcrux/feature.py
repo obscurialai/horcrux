@@ -32,6 +32,9 @@ class Feature:
         output = self._compute_impl(start, end, pairs, *self.args, **self.kwargs)
         if self.fields != None:
             output = output.loc[:, pd.IndexSlice[pairs, self.fields]]
+        
+        output = self.normalize_output(output)
+        
         return output
     
     def normalize_output(self, output: pd.DataFrame) -> pd.DataFrame:
