@@ -19,7 +19,15 @@ class FLogReturns(Feature):
             log_price = FLog(OHLCV(fields = ["close"])).compute(start, end + offset_timedelta, pairs)
             result = (log_price.shift(-abs_offset) - log_price)
         
-        # Create multiindex columns with pair as first level and "log_return" as second level
-        result.columns = pd.MultiIndex.from_product([result.columns, ["log_return"]], names=['pair', 'feature'])
+        # Extract pair names from the existing MultiIndex columns
+        # result.columns is a MultiIndex with (pair, 'close') structure
+        if isinstance(result.columns, pd.MultiIndex):
+            pair_names = result.columns.get_level_values(0).unique()
+            # Create new MultiIndex columns with pair as first level and "log_return" as second level
+            result.columns = pd.MultiIndex.from_product([pair_names, ["log_return"]], names=['pair', 'feature'])
+        else:
+            # Fallback for non-MultiIndex columns (shouldn't happen with current setup)
+            result.columns = pd.MultiIndex.from_product([result.columns, ["log_return"]], names=['pair', 'feature'])
+        
         return result
         
