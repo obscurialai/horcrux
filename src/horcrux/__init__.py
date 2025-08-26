@@ -3,5 +3,6 @@ from .feature import Feature
 from .zscore import ZScore
 from .rolling_linreg_slope import RollingLinRegSlope
 from .feature_union import FUnion
+from .multiparam import FMultiParam
 
-__all__ = ['OHLCV', 'Feature', 'ZScore', 'RollingLinRegSlope', 'FUnion'] 
+__all__ = ['OHLCV', 'Feature', 'ZScore', 'RollingLinRegSlope', 'FUnion', 'FMultiParam'] 

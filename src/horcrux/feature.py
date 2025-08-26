@@ -103,4 +103,3 @@ class Feature:
         hash_bytes = hashlib.sha256(identifier_json.encode()).digest()
         compact_hash_encoding = base64.b85encode(hash_bytes).decode()
         return compact_hash_encoding
-    
