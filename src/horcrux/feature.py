@@ -110,7 +110,7 @@ class Feature:
         step = pd.Timedelta(days=30)
         n = 10
         chunks = []
-        for i in range(0, n+1):
+        for i in range(0, n):
             start = full_start + i*step
             end = full_start + (i+1)*step
             chunk = self.compute(start, end, pairs)
