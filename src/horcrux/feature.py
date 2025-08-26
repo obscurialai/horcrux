@@ -50,7 +50,7 @@ class Feature:
         if end.tz is None:
             end = end.tz_localize('UTC')
         
-        output = self._compute_impl(start, end, pairs, *self.args, **self.kwargs)
+        output = self._compute_impl(start, end, pairs, *self.args, **self.kwargs)[start:end]
         
         # Ensure the DataFrame has MultiIndex columns
         if convert_to_multiindex:
@@ -103,3 +103,19 @@ class Feature:
         hash_bytes = hashlib.sha256(identifier_json.encode()).digest()
         compact_hash_encoding = base64.b85encode(hash_bytes).decode()
         return compact_hash_encoding
+    
+    def test_leak(self):
+        full_start = pd.Timestamp("2024-01-01", tz="UTC")
+        pairs = ["ETH_BTC"]
+        step = pd.Timedelta(days=30)
+        n = 10
+        chunks = []
+        for i in range(0, n+1):
+            start = full_start + i*step
+            end = full_start + (i+1)*step
+            chunk = self.compute(start, end, pairs)
+            chunks.append(chunk)
+        
+        chunks_df = pd.concat(chunks)
+        full_df = self.compute(full_start, full_start + n*step, pairs)
+        return full_df - chunks_df
