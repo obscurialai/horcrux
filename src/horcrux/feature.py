@@ -50,7 +50,7 @@ class Feature:
         if end.tz is None:
             end = end.tz_localize('UTC')
         
-        output = self._compute_impl(start, end, pairs, *self.args, **self.kwargs)[start:end]
+        output = self._compute_impl(start, end, pairs, *self.args, **self.kwargs).loc[start:end]
         
         # Ensure the DataFrame has MultiIndex columns
         if convert_to_multiindex:
