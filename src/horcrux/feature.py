@@ -101,7 +101,7 @@ class Feature:
         }
         identifier_json = json.dumps(identifier, sort_keys = True, default = str)
         hash_bytes = hashlib.sha256(identifier_json.encode()).digest()
-        compact_hash_encoding = base64.b85encode(hash_bytes).decode()
+        compact_hash_encoding = base64.urlsafe_b64encode(hash_bytes).decode()
         return compact_hash_encoding
     
     def test_leak(self):
