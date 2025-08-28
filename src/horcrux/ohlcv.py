@@ -32,7 +32,7 @@ class OHLCV(Feature):
         if OHLCV.ohlcv_data is None:
             self._load_ohlcv_data()
         
-        return OHLCV.ohlcv_data.loc[start:end][pairs]
+        return OHLCV.ohlcv_data.loc[start:end][pairs].ffill()
     
     def _load_ohlcv_data(self):
         """

@@ -106,7 +106,7 @@ class Feature:
     
     def test_leak(self):
         full_start = pd.Timestamp("2024-01-01", tz="UTC")
-        pairs = ["ETH_BTC"]
+        pairs = ["ETH_BTC", "AAVE_BTC", "XRP_BTC", "ADA_BTC", "LINK_BTC", "ARB_BTC", "SOL_BTC", "RUNE_BTC"]
         step = pd.Timedelta(days=30)
         n = 10
         chunks = []
