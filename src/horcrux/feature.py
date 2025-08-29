@@ -87,6 +87,75 @@ class Feature:
         
         return output
     
+    def save_to(self, start: Union[str, pd.Timestamp], end: Union[str, pd.Timestamp], 
+                pairs: Union[str, List[str]], file_location: str) -> pd.DataFrame:
+        """
+        Compute the feature and save it to a parquet file optimized for time-based queries.
+        
+        Args:
+            start: Start timestamp
+            end: End timestamp  
+            pairs: List of pairs to compute
+            file_location: Path to the parquet file
+            
+        Returns:
+            pd.DataFrame: The computed feature dataframe
+        """
+        import os
+        import pyarrow as pa
+        import pyarrow.parquet as pq
+        
+        # Compute the feature
+        output = self.compute(start, end, pairs, add_hash=True, convert_to_multiindex=True)
+        
+        # Ensure the output is sorted by index (timestamp) for better query performance
+        output = output.sort_index()
+        
+        # Check if the parquet file exists
+        if os.path.exists(file_location):
+            # Load existing data
+            existing_df = pd.read_parquet(file_location)
+            
+            # Merge with new data
+            # We'll use pd.concat and remove duplicates, keeping the newer data
+            combined = pd.concat([existing_df, output])
+            
+            # Remove duplicate rows based on index (timestamp) and columns
+            # Keep last occurrence (the newer data)
+            combined = combined[~combined.index.duplicated(keep='last')]
+            
+            # Sort by index
+            combined = combined.sort_index()
+            
+            # Save the combined data with optimization
+            table = pa.Table.from_pandas(combined)
+            pq.write_table(
+                table, 
+                file_location,
+                compression='snappy',  # Fast compression for read performance
+                row_group_size=10000,  # Smaller row groups for efficient month-by-month reading
+                use_dictionary=True,   # Dictionary encoding for repeated values
+                data_page_size=1024*1024,  # 1MB data pages
+                version='2.6'  # Latest parquet version for better performance
+            )
+        else:
+            # Create directory if it doesn't exist
+            os.makedirs(os.path.dirname(file_location), exist_ok=True)
+            
+            # Save the output directly with optimization
+            table = pa.Table.from_pandas(output)
+            pq.write_table(
+                table, 
+                file_location,
+                compression='snappy',  # Fast compression for read performance
+                row_group_size=10000,  # Smaller row groups for efficient month-by-month reading
+                use_dictionary=True,   # Dictionary encoding for repeated values
+                data_page_size=1024*1024,  # 1MB data pages
+                version='2.6'  # Latest parquet version for better performance
+            )
+        
+        return output
+    
     @abstractmethod
     def _compute_impl(self, start: pd.Timestamp, end: pd.Timestamp, pairs: List[str], *args, **kwargs):
         raise NotImplementedError
