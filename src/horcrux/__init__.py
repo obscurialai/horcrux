@@ -6,5 +6,6 @@ from .feature_union import FUnion
 from .multiparam import FMultiParam
 from .log import FLog
 from .log_return import FLogReturns
+from .tp_sl_pnl import TPSL_LogReturn
 
-__all__ = ['OHLCV', 'Feature', 'ZScore', 'RollingLinRegSlope', 'FUnion', 'FMultiParam', 'FLog', 'FLogReturns'] 
+__all__ = ['OHLCV', 'Feature', 'ZScore', 'RollingLinRegSlope', 'FUnion', 'FMultiParam', 'FLog', 'FLogReturns', 'TPSL_LogReturn'] 
