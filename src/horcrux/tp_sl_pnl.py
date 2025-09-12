@@ -104,4 +104,13 @@ class TPSL_LogReturn(Feature):
         entries = pd.DataFrame(True, index=ohlcv.index, columns=ohlcv.columns.get_level_values(0).unique())
         tp_sl_log_return = fast_exit(entries, ohlcv, tp_frac, sl_frac)
         
-        return tp_sl_log_return 
+        # Create MultiIndex DataFrame with (pair, feature) structure
+        result = pd.DataFrame(index=tp_sl_log_return.index)
+        for pair in pairs:
+            if pair in tp_sl_log_return.columns:
+                result[(pair, 'tpsl_logreturns')] = tp_sl_log_return[pair]
+        
+        # Set proper MultiIndex column names
+        result.columns = pd.MultiIndex.from_tuples(result.columns, names=['pair', 'feature'])
+        
+        return result 

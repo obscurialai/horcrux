@@ -7,10 +7,14 @@ import json
 import base64, hashlib
 
 class Feature:
-    def __init__(self, *args, fields: Union[None, List[str]] = None, **kwargs):
-        self.args = args
+    def __init__(self, pairs: Union[str, List[str]], **kwargs):
         self.kwargs = kwargs
-        self.fields = fields
+        # Convert string pairs to list if needed
+        if isinstance(pairs, str):
+            self.pairs = [pairs]
+        else:
+            self.pairs = pairs
+            
         #For now for convenience we will only use the first 10 characters of the hash
         self.hash = self.__compute_hash()[:10]
     
@@ -34,15 +38,12 @@ class Feature:
         
         return output
     
-    def compute(self, start: Union[str, pd.Timestamp], end: Union[str, pd.Timestamp], pairs: Union[str, List[str]], add_hash: bool = False, convert_to_multiindex = False):
+    def compute(self, start: Union[str, pd.Timestamp], end: Union[str, pd.Timestamp], add_hash: bool = False, convert_to_multiindex = False):
         # Convert string inputs to pd.Timestamp if needed
         if isinstance(start, str):
             start = pd.Timestamp(start)
         if isinstance(end, str):
             end = pd.Timestamp(end)
-        # Convert string pairs to list if needed
-        if isinstance(pairs, str):
-            pairs = [pairs]
         
         # Convert timezone-naive timestamps to UTC
         if start.tz is None:
@@ -50,15 +51,11 @@ class Feature:
         if end.tz is None:
             end = end.tz_localize('UTC')
         
-        output = self._compute_impl(start, end, pairs, *self.args, **self.kwargs).loc[start:end]
+        output = self._compute_impl(start, end, self.pairs, **self.kwargs).loc[start:end]
         
         # Ensure the DataFrame has MultiIndex columns
         if convert_to_multiindex:
             output = self._ensure_multiindex_columns(output)
-        
-        #If we have a fields parameter then we need to return only those fields
-        if self.fields != None:
-            output = output.loc[:, pd.IndexSlice[pairs, self.fields]]
         
         #If add_hash = True add hashes to the columnnames
         if add_hash:
@@ -87,8 +84,7 @@ class Feature:
         
         return output
     
-    def save_to(self, start: Union[str, pd.Timestamp], end: Union[str, pd.Timestamp], 
-                pairs: Union[str, List[str]], file_location: str) -> pd.DataFrame:
+    def save_to(self, start: Union[str, pd.Timestamp], end: Union[str, pd.Timestamp], file_location: str) -> pd.DataFrame:
         """
         Compute the feature and save it to a parquet file optimized for time-based queries.
         
@@ -106,7 +102,7 @@ class Feature:
         import pyarrow.parquet as pq
         
         # Compute the feature
-        output = self.compute(start, end, pairs, add_hash=True, convert_to_multiindex=True)
+        output = self.compute(start, end, add_hash=True, convert_to_multiindex=True)
         
         # Ensure the output is sorted by index (timestamp) for better query performance
         output = output.sort_index()
@@ -157,7 +153,7 @@ class Feature:
         return output
     
     @abstractmethod
-    def _compute_impl(self, start: pd.Timestamp, end: pd.Timestamp, pairs: List[str], *args, **kwargs):
+    def _compute_impl(self, start: pd.Timestamp, end: pd.Timestamp, pairs: List[str], **kwargs):
         raise NotImplementedError
     
     #TODO hashing does not support other features yet, only valid json objects like str, float and bool.
@@ -165,7 +161,7 @@ class Feature:
     def __compute_hash(self):
         identifier = {
             "code": inspect.getsource(self.__class__),
-            "args": self.args,
+            "pairs": self.pairs,
             "kwargs": self.kwargs
         }
         identifier_json = json.dumps(identifier, sort_keys = True, default = str)
@@ -175,16 +171,15 @@ class Feature:
     
     def test_leak(self):
         full_start = pd.Timestamp("2024-01-01", tz="UTC")
-        pairs = ["ETH_BTC", "AAVE_BTC", "XRP_BTC", "ADA_BTC", "LINK_BTC", "ARB_BTC", "SOL_BTC", "RUNE_BTC"]
         step = pd.Timedelta(days=30)
         n = 10
         chunks = []
         for i in range(0, n):
             start = full_start + i*step
             end = full_start + (i+1)*step
-            chunk = self.compute(start, end, pairs)
+            chunk = self.compute(start, end)
             chunks.append(chunk)
         
         chunks_df = pd.concat(chunks)
-        full_df = self.compute(full_start, full_start + n*step, pairs)
+        full_df = self.compute(full_start, full_start + n*step)
         return full_df - chunks_df
